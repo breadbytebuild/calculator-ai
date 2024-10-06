@@ -1,4 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+function SobrietyTimer() {
+  const [startTime, setStartTime] = useState(() => {
+    const saved = localStorage.getItem('sobrietyStartTime');
+    return saved ? new Date(parseInt(saved)) : new Date();
+  });
+  const [duration, setDuration] = useState('');
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      const diff = now - startTime;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      setDuration(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [startTime]);
+
+  const resetTimer = () => {
+    const now = new Date();
+    setStartTime(now);
+    localStorage.setItem('sobrietyStartTime', now.getTime().toString());
+  };
+
+  const setCustomStartTime = () => {
+    const input = prompt("Enter start date (YYYY-MM-DD):");
+    if (input) {
+      const customDate = new Date(input);
+      if (!isNaN(customDate.getTime())) {
+        setStartTime(customDate);
+        localStorage.setItem('sobrietyStartTime', customDate.getTime().toString());
+      } else {
+        alert("Invalid date format. Please use YYYY-MM-DD.");
+      }
+    }
+  };
+
+  return (
+    <div style={styles.timer}>
+      <div>Sober for: {duration}</div>
+      <button style={styles.timerButton} onClick={resetTimer}>Reset to Now</button>
+      <button style={styles.timerButton} onClick={setCustomStartTime}>Set Custom Start</button>
+    </div>
+  );
+}
 
 function App() {
   const [display, setDisplay] = useState('0');
@@ -20,25 +68,45 @@ function App() {
   };
 
   return (
-    <div style={styles.calculator}>
-      <div style={styles.display}>{display}</div>
-      <div style={styles.buttonGrid}>
-        {['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', '0', '.', '=', '+'].map((btn) => (
-          <button
-            key={btn}
-            style={styles.button}
-            onClick={() => btn === '=' ? handleCalculate() : handleClick(btn)}
-          >
-            {btn}
-          </button>
-        ))}
-        <button style={styles.button} onClick={handleClear}>C</button>
+    <div style={styles.container}>
+      <SobrietyTimer />
+      <div style={styles.calculator}>
+        <div style={styles.display}>{display}</div>
+        <div style={styles.buttonGrid}>
+          {['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', '0', '.', '=', '+'].map((btn) => (
+            <button
+              key={btn}
+              style={styles.button}
+              onClick={() => btn === '=' ? handleCalculate() : handleClick(btn)}
+            >
+              {btn}
+            </button>
+          ))}
+          <button style={styles.button} onClick={handleClear}>C</button>
+        </div>
       </div>
     </div>
   );
 }
 
 const styles = {
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginTop: '50px',
+  },
+  timer: {
+    fontSize: '24px',
+    marginBottom: '20px',
+    textAlign: 'center',
+  },
+  timerButton: {
+    fontSize: '16px',
+    margin: '10px 5px',
+    padding: '5px 10px',
+    cursor: 'pointer',
+  },
   calculator: {
     width: '240px',
     margin: '50px auto',
