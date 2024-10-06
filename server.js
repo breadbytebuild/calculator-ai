@@ -14,7 +14,11 @@ const replicate = new Replicate({
 });
 
 app.post('/generate-image', async (req, res) => {
+  console.log('Received request to generate image with prompt:', req.body.prompt);
+  console.log('Making API call to Replicate...');
+  
   try {
+    const startTime = Date.now();
     const output = await replicate.run(
       "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
       {
@@ -23,6 +27,12 @@ app.post('/generate-image', async (req, res) => {
         }
       }
     );
+    const endTime = Date.now();
+    
+    console.log('Received response from Replicate');
+    console.log('API call duration:', (endTime - startTime) / 1000, 'seconds');
+    console.log('Generated image URL:', output[0]);
+    
     res.json({ imageUrl: output[0] });
   } catch (error) {
     console.error('Error generating image:', error);

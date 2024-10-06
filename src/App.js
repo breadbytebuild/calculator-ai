@@ -54,7 +54,9 @@ function ImageGenerator({ duration }) {
 
   useEffect(() => {
     const generateImage = async () => {
+      console.log('Initiating image generation for duration:', duration);
       try {
+        const startTime = Date.now();
         const response = await fetch('http://localhost:3001/generate-image', {
           method: 'POST',
           headers: {
@@ -65,6 +67,12 @@ function ImageGenerator({ duration }) {
           }),
         });
         const data = await response.json();
+        const endTime = Date.now();
+        
+        console.log('Received response from server');
+        console.log('Request duration:', (endTime - startTime) / 1000, 'seconds');
+        console.log('New image URL:', data.imageUrl);
+        
         setImageUrl(data.imageUrl);
       } catch (error) {
         console.error('Error generating image:', error);
