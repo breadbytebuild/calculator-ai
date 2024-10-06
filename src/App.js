@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Replicate from "replicate";
 
 function SobrietyTimer() {
   const [startTime, setStartTime] = useState(() => {
@@ -48,8 +49,47 @@ function SobrietyTimer() {
   );
 }
 
+function ImageGenerator({ duration }) {
+  const [imageUrl, setImageUrl] = useState('');
+
+  useEffect(() => {
+    const generateImage = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/generate-image', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: `A person celebrating ${duration} of sobriety, inspirational, uplifting`,
+          }),
+        });
+        const data = await response.json();
+        setImageUrl(data.imageUrl);
+      } catch (error) {
+        console.error('Error generating image:', error);
+      }
+    };
+
+    generateImage();
+    const interval = setInterval(generateImage, 20000);
+    return () => clearInterval(interval);
+  }, [duration]);
+
+  return (
+    <div style={styles.imageContainer}>
+      {imageUrl ? (
+        <img src={imageUrl} alt="Sobriety celebration" style={styles.image} />
+      ) : (
+        <p>Generating image...</p>
+      )}
+    </div>
+  );
+}
+
 function App() {
   const [display, setDisplay] = useState('0');
+  const [duration, setDuration] = useState('');
 
   const handleClick = (value) => {
     setDisplay(display === '0' ? value : display + value);
@@ -69,7 +109,8 @@ function App() {
 
   return (
     <div style={styles.container}>
-      <SobrietyTimer />
+      <SobrietyTimer onDurationChange={setDuration} />
+      <ImageGenerator duration={duration} />
       <div style={styles.calculator}>
         <div style={styles.display}>{display}</div>
         <div style={styles.buttonGrid}>
@@ -135,6 +176,20 @@ const styles = {
     borderRadius: '3px',
     backgroundColor: '#fff',
     cursor: 'pointer',
+  },
+  imageContainer: {
+    width: '300px',
+    height: '300px',
+    marginBottom: '20px',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    border: '1px solid #ccc',
+  },
+  image: {
+    maxWidth: '100%',
+    maxHeight: '100%',
+    objectFit: 'contain',
   },
 };
 
