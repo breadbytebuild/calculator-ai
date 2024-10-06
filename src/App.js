@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './App.css'; // We'll create this file for additional styles
 
 function SobrietyTimer({ onDurationChange }) {
   const [startTime, setStartTime] = useState(() => {
@@ -42,20 +43,32 @@ function SobrietyTimer({ onDurationChange }) {
   };
 
   return (
-    <div style={styles.timer}>
-      <div>Sober for: {duration}</div>
-      <button style={styles.timerButton} onClick={resetTimer}>Reset to Now</button>
-      <button style={styles.timerButton} onClick={setCustomStartTime}>Set Custom Start</button>
+    <div className="card timer-card">
+      <h2>Sobriety Tracker</h2>
+      <div className="duration">{duration}</div>
+      <div className="button-group">
+        <button className="button" onClick={resetTimer}>Reset</button>
+        <button className="button" onClick={setCustomStartTime}>Custom Date</button>
+      </div>
     </div>
   );
 }
 
 function ImageGenerator({ duration }) {
   const [imageUrl, setImageUrl] = useState('');
+  const [nextImageUrl, setNextImageUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let timer;
+    let isMounted = true;
+
     const generateImage = async () => {
+      if (!isMounted) return;
+      
+      setIsLoading(true);
       console.log('Initiating image generation for duration:', duration);
+      
       try {
         const startTime = Date.now();
         const response = await fetch('http://localhost:3001/generate-image', {
@@ -74,29 +87,61 @@ function ImageGenerator({ duration }) {
         console.log('Request duration:', (endTime - startTime) / 1000, 'seconds');
         console.log('New image URL:', data.imageUrl);
         
-        setImageUrl(data.imageUrl);
+        if (isMounted) {
+          if (!imageUrl) {
+            console.log('Setting initial image');
+            setImageUrl(data.imageUrl);
+          } else {
+            console.log('Setting next image');
+            setNextImageUrl(data.imageUrl);
+          }
+          setIsLoading(false);
+        }
       } catch (error) {
         console.error('Error generating image:', error);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
-    // Generate image immediately
-    generateImage();
+    const updateImage = () => {
+      if (nextImageUrl) {
+        console.log('Updating displayed image');
+        setImageUrl(nextImageUrl);
+        setNextImageUrl('');
+      }
+    };
 
-    // Set up interval for subsequent generations
-    const interval = setInterval(generateImage, 20000);
+    const scheduleNextGeneration = () => {
+      timer = setInterval(() => {
+        updateImage();
+        generateImage();
+      }, 20000);
+    };
 
-    // Clean up interval on component unmount
-    return () => clearInterval(interval);
+    generateImage(); // Generate first image immediately
+    scheduleNextGeneration(); // Schedule subsequent generations
+
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+    };
   }, []); // Empty dependency array
 
+  console.log('Current image URL:', imageUrl);
+  console.log('Next image URL:', nextImageUrl);
+  console.log('Is loading:', isLoading);
+
   return (
-    <div style={styles.imageContainer}>
+    <div className="card image-card">
+      <h2>Celebration Image</h2>
       {imageUrl ? (
-        <img src={imageUrl} alt="Sobriety celebration" style={styles.image} />
+        <img src={imageUrl} alt="Sobriety celebration" className="generated-image" />
       ) : (
-        <p>Generating image...</p>
+        <div className="loading">Generating your first image...</div>
       )}
+      {isLoading && <div className="loading-overlay">Preparing next image...</div>}
     </div>
   );
 }
@@ -105,46 +150,16 @@ function App() {
   const [duration, setDuration] = useState('');
 
   return (
-    <div style={styles.container}>
-      <SobrietyTimer onDurationChange={setDuration} />
-      <ImageGenerator duration={duration} />
+    <div className="app-container">
+      <header className="app-header">
+        <h1>Sobriety Celebration</h1>
+      </header>
+      <main className="app-main">
+        <SobrietyTimer onDurationChange={setDuration} />
+        <ImageGenerator duration={duration} />
+      </main>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '20px',
-    fontFamily: 'Arial, sans-serif',
-  },
-  timer: {
-    fontSize: '24px',
-    marginBottom: '20px',
-    textAlign: 'center',
-  },
-  timerButton: {
-    fontSize: '16px',
-    margin: '10px 5px',
-    padding: '5px 10px',
-    cursor: 'pointer',
-  },
-  imageContainer: {
-    width: '300px',
-    height: '300px',
-    marginTop: '20px',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    border: '1px solid #ccc',
-  },
-  image: {
-    maxWidth: '100%',
-    maxHeight: '100%',
-    objectFit: 'contain',
-  },
-};
 
 export default App;
