@@ -118,3 +118,26 @@ body {
     align-items: center;
   }
 }
+
+.login-card {
+  max-width: 300px;
+  margin: 100px auto;
+}
+
+.login-card form {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-card input {
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.logout-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
