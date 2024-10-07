@@ -13,6 +13,8 @@ function ImageGenerator({ duration }) {
       setIsLoading(true);
       console.log('Initiating image generation for duration:', duration);
       
+      // Commented out API call to Replicate
+      /*
       try {
         const response = await fetch('http://localhost:3001/generate-image', {
           method: 'POST',
@@ -35,6 +37,15 @@ function ImageGenerator({ duration }) {
           setIsLoading(false);
         }
       }
+      */
+
+      // Placeholder behavior
+      setTimeout(() => {
+        if (isMounted) {
+          setImageUrl('https://via.placeholder.com/300x300?text=Sobriety+Celebration');
+          setIsLoading(false);
+        }
+      }, 2000); // Simulate a 2-second delay
     };
 
     const timer = setInterval(generateImage, 20000);
