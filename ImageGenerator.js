@@ -14,7 +14,7 @@ function ImageGenerator({ duration }) {
       console.log('Initiating image generation for duration:', duration);
       
       try {
-        const response = await fetch('http://localhost:3001/generate-image', {
+        const response = await fetch('/api/generate-image', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
